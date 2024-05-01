@@ -1,0 +1,521 @@
+1. NEGATIVE IMAGE
+
+img=cv2.imread('/content/240_F_580908469_ameHMXlxIeyOfFK9YX0VDb6xsebULfPr.jpg')
+negativeimg=255-img
+cv2_imshow(negativeimg)
+
+2. IAMGE FLIPING
+
+img_h=cv2.flip(grayimg,1)
+img_v=cv2.flip(grayimg,0)
+concatenated_img = np.hstack([img_h, img_v])
+cv2_imshow(concatenated_img)
+
+3.Power law Transformation
+
+img_light = cv2.imread("/content/drive/MyDrive/dip_Images/Fig0309(a)(washed_out_aerial_image).tif",cv2.COLOR_BGR2GRAY)
+plt.figure(figsize=(15,12))
+gammas = [0.04, 0.1, 0.2, 0.4, 0.67, 1 , 1.5, 2.5, 5, 10, 25, 30]
+img_no = 1
+for gamma in gammas:
+    img_pl = 255*(img_light/255)**gamma
+    if img_no == 1:
+        imShow("Original Image",img_light, subplot=True, row=3, col=4, num=1)
+    else:
+        imShow(f"Gamma {gamma}",img_pl, subplot=True, row=3, col=4, num=img_no)
+    img_no += 1
+
+
+4.Log Transformation
+
+img = cv2.imread("/content/drive/MyDrive/dip_Images/Fig0320(2)(2nd_from_top).tif",0)
+
+c=255/np.log(1+np.max(img));
+log_img_g=c*(np.log(img+1));
+cv2_imshow(log_img_g);
+
+5.Contrast Streching
+
+img=cv2.imread('/content/hist2.bmp')
+w,h,d=img.shape
+img2=img.copy()
+r1=120
+s1=225
+r2=150
+s2=90
+
+m1=s1/r1
+m2=(s2-s1)/(r2-r1)
+m3=(255-s2)/(255-r2)
+
+for i in range(w):
+  for j in range(h):
+    for k in range(d):
+      if((img[i][j][k])<r1):
+        img2[i][j][k]=m1*img[i][j][k];
+      elif (img[i][j][k]==r1 and img[i][j][k]<=r2):
+        img2[i][j][k]=(img[i][j][k]-r1)*m2+s1;
+      else:
+        img2[i][j][k]=(img[i][j][k]-r2)*m3+s2;
+plt.figure(figsize=(10, 5))
+
+# Display original image
+plt.subplot(1, 2, 1)
+plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+plt.title('Original Image')
+plt.axis('off')
+
+# Display processed image
+plt.subplot(1, 2, 2)
+plt.imshow(img2, cmap='gray')
+plt.title('Processed Image')
+plt.axis('off')
+
+plt.show()
+
+
+6.Gray Level Slicing
+
+#With Background
+img = cv2.imread('/content/Bit plane slicing.bmp',0)
+m,n = img.shape
+T1 = 100 #lower threshold value
+T2 = 180 #upper threshold value
+
+
+for i in range(m):
+
+	for j in range(n):
+
+		if T1 < img[i,j] < T2:
+			img_gray_bg[i,j]= 255
+		else:
+			img_gray_bg[i,j] = img[i,j]
+
+cv2_imshow(img)
+
+
+# Without Background
+
+img = cv2.imread('/content/Bit plane slicing.bmp',0)
+m,n = img.shape
+T1 = 100 #lower threshold value
+T2 = 180 #upper threshold value
+
+
+for i in range(m):
+
+	for j in range(n):
+
+		if T1 < img[i,j] < T2:
+			img[i,j]= 255
+		else:
+			img[i,j] = 0
+
+cv2_imshow(img)
+
+7.Bit Plane Slicing
+
+img=cv2.imread("/content/Bit plane slicing.bmp",0);
+slices=[]
+for i in range(8):
+  plane=np.zeros_like(img)
+  plane[img&(1<<i)!=0]=255
+  slices.append(plane)
+
+cv2_imshow(img)
+for slice in slices:
+  cv2_imshow(slice)
+
+8. Histogram 
+
+ # Only for dark image do it for other as well
+img=cv2.imread('/content/hist5.bmp',0)
+cv2_imshow(img)
+hist,bins=np.histogram(img.ravel(),256,[0,256])
+plt.plot(hist)
+plt.show()
+
+# Equalize histogram
+img=cv.imread('/content/drive/MyDrive/dip_Images/Fig0320(2)(2nd_from_top).tif',0)
+
+eqlz_img=cv.equalizeHist(img)
+
+hist,bins=np.histogram(img.ravel(),256,[0,256])
+
+eqlzhist,eqlzbins = np.histogram(eqlz_img.ravel(),256,[0,256])
+
+plt.figure(figsize=(10,8))
+plt.subplot(2,2,1)
+plt.imshow(img,cmap='gray')
+plt.title('og img')
+plt.axis('off')
+
+plt.subplot(2,2,2)
+plt.imshow(eqlz_img,cmap='gray')
+plt.title('eqlz img')
+plt.axis('off')
+
+plt.subplot(2,2,3)
+plt.plot(hist)
+plt.title('og hist')
+
+plt.subplot(2,2,4)
+plt.plot(eqlzhist)
+plt.title('eqlz hist')
+
+plt.show()
+
+
+9.Box filter
+
+kernel = np.array([
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1]
+]) / 9.0 ;
+filter_img=np.ones_like(img);
+padded_img = np.pad(img, ((1, 1), (1, 1)), mode='constant')
+for i in range(img.shape[0]):
+  for j in range(img.shape[1]):
+    filter_img[i,j]=np.sum(kernel*padded_img[i:i+3,j:j+3]);
+
+output_img = np.uint8(filter_img)
+cv2_imshow(output_img)
+
+10.Weighted filter
+
+#weighted
+kernel = np.array([
+    [1, 2, 1],
+    [2, 4, 2],
+    [1, 2, 1]
+]) / 16.0
+filter_img=np.ones_like(img);
+padded_img = np.pad(img, ((1, 1), (1, 1)), mode='constant')
+for i in range(img.shape[0]):
+  for j in range(img.shape[1]):
+    weighted_sum=0.0;
+    kernel_sum=0.0;
+    for k in range(-1,2):
+      for l in range(-1,2):
+        pixel_val=padded_img[i+k+1,j+l+1]
+        weight=kernel[k+1,l+1]
+        weighted_sum+=pixel_val*weight;
+        kernel_sum+=weight
+        filter_img[i,j]=weighted_sum/kernel_sum;
+
+output_img = np.uint8(filter_img)
+cv2_imshow(output_img)
+
+
+11.Median Filter
+
+#median
+img = cv2.imread('/content/median.bmp', 0)
+
+k_size = 3
+p_size = k_size // 2
+output = np.zeros_like(img)
+#filtered_img = cv2.medianBlur(img, kernel_size)
+for i in range(p_size, img.shape[0] - p_size):
+    for j in range(p_size, img.shape[1] - p_size):
+        window = img[i - p_size:i + p_size + 1, j - p_size:j + p_size + 1]
+        median = np.median(window)
+        output[i, j] = median
+
+cv2_imshow(output)
+
+
+12. Point Detection
+
+T = 150
+img = cv.imread('/content/drive/MyDrive/dip_Images/Fig0305(a)(DFT_no_log).tif',0)
+m,n = img.shape
+img1 = np.pad(img, pad_width=1, mode='constant', constant_values=255)
+fil_img = np.zeros_like(img)
+mask = np.array ([[-1,-1,-1],
+                 [-1,8,-1],
+                 [-1,-1,-1]])
+
+for i in range (m):
+  for j in range (n):
+    replace = np.sum(img1[i:i+3,j:j+3]*mask)
+
+    if replace > T:
+      fil_img[i,j] = 255
+
+    else:
+        fil_img[i,j] = 0
+
+plt.figure(figsize=(10,8))
+
+plt.subplot(1,2,1)
+plt.imshow(img,cmap='gray')
+plt.title('og img')
+plt.subplot(1,2,2)
+plt.imshow(fil_img , cmap='gray')
+plt.title('pt det')
+plt.show()
+
+
+13.Line Detection
+
+T = 70
+
+img1 = np.pad(img,pad_width=1,mode='constant',constant_values=255)
+m,n = img.shape
+fil_img = np.zeros_like(img)
+
+horiz_mask = np.array([[-1,-1,-1],
+                       [2,2,2],
+                       [-1,-1,-1]])
+
+vert_mask  = np.array([[-1,2,-1],
+                      [-1,2,-1],
+                      [-1,2,-2]])
+
+deg45_mask = np.array([[-1,-1,2],
+                     [-1,2,-1],
+                     [2,-1,-1]])
+
+degn45_mask = np.array([[2,-1,-1],
+                      [-1,2,-1],
+                      [-1,-1,2]])
+
+masks = [horiz_mask,vert_mask,deg45_mask,degn45_mask ]
+merged_img = np.zeros_like(img)
+output = []
+
+for mask in masks:
+  fil_img = np.zeros_like(img)
+  for i in range(m):
+    for j in range(n):
+      replace = np.sum (img1[i:i+3,j:j+3]*mask)
+      if replace > T:
+        fil_img[i,j] = 255
+        merged_img[i,j] = 255
+      else:
+        fil_img[i,j] = 0
+  output.append(fil_img)
+
+plt.figure(figsize=(15,10))
+plt.subplot(2,3,1)
+plt.imshow(img,cmap='gray')
+plt.title('og img')
+plt.subplot(2,3,2)
+plt.imshow(output[0],cmap='gray')
+plt.title('horizantal img')
+plt.subplot(2,3,3)
+plt.imshow(output[1],cmap='gray')
+plt.title('vertical img')
+plt.subplot(2,3,4)
+plt.imshow(output[2],cmap='gray')
+plt.title('deg45 img')
+plt.subplot(2,3,5)
+plt.imshow(output[3],cmap='gray')
+plt.title('degn45 img')
+plt.subplot(2,3,6)
+plt.imshow(merged_img,cmap='gray')
+plt.title('merged img')
+
+plt.show()
+
+14.Thresholding
+
+img = cv.imread('/content/drive/MyDrive/dip_Images/input-image-for-demo-throughout-1024x682.jpg',0)
+plt.figure(figsize=(10,8))
+plt.subplot(1,2,1)
+plt.imshow(img,cmap='gray')
+plt.title('og')
+delta = 3
+Tnew = np.min(img)+1
+
+while abs(T-Tnew) >= delta:
+  T=Tnew
+  m,n = img.shape
+
+  G1 = []
+  G2 = []
+
+  for i in range (m):
+    for j in range (n):
+      if img[i][j] > T:
+        G1.append(img[i][j])
+      else:
+          G2.append(img[i][j])
+  m1=np.mean(G1)
+  m2=np.mean(G2)
+
+  Tnew = (m1+m2)/2
+
+for i in range (m):
+  for j in range (n):
+    if img[i][j]>T:
+      img[i][j]=255
+    else:
+      img[i][j]=0
+
+
+plt.subplot(1,2,2)
+plt.imshow(img,cmap='gray')
+plt.title('thresholding')
+plt.show()
+
+15.Robert 
+
+img = cv.imread('/content/drive/MyDrive/dip_Images/Fig0354(a)(einstein_orig).tif',0)
+row,col = img.shape
+img1 = np.pad(img,pad_width=1,mode='constant',constant_values=0)
+Gx = np.zeros_like(img)
+Gy = np.zeros_like(img)
+robert_img = np.zeros_like(img)
+
+dGx = np.array ([[1,0],
+                 [0,-1]])
+dGy = np.array ([[0,1],
+                [-1,0]])
+
+for i in range(row):
+  for j in range(col):
+    r1 = np.sum(img1[i:i+2,j:j+2]*dGx)
+    r2 = np.sum(img1[i:i+2,j:j+2]*dGy)
+    Gx[i][j] = abs(r1)
+    Gy[i][j] = abs(r2)
+    robert_img[i][j] = abs(r1)+abs(r2)
+
+plt.figure(figsize=(10,8))
+
+plt.subplot(2,2,1)
+plt.imshow(img,cmap='gray')
+plt.title('og img')
+
+plt.subplot(2,2,2)
+plt.imshow(robert_img,cmap='gray')
+plt.title('Gx img')
+
+plt.subplot(2,2,3)
+plt.imshow(robert_img,cmap='gray')
+plt.title('Gy img')
+
+plt.subplot(2,2,4)
+plt.imshow(robert_img,cmap='gray')
+plt.title('Gx+Gy img')
+
+plt.show()
+
+16.Prewitt
+
+dGx = np.array([[-1,-1,-1],
+                [ 0, 0, 0],
+                [ 1, 1, 1]])
+dGy = np.array([[-1, 0, 1],
+                [-1, 0, 1],
+                [-1, 0, 1]])
+
+prewittImg = np.zeros_like(img)
+
+
+17. Sobel
+
+#sobel
+dGx = np.array([[-1,-2,-1],
+                [ 0, 0, 0],
+                [ 1, 2, 1]])
+dGy = np.array([[-1, 0, 1],
+                [-2, 0, 2],
+                [-1, 0, 1]])
+Gx = np.zeros_like(img)
+Gy = np.zeros_like(img)
+sobelImg = np.zeros_like(img)
+
+18.DCT 
+
+def dct2(block):
+    # Apply 2D DCT to the block
+    return cv2.dct(cv2.dct(np.float32(block)))
+
+def idct2(block):
+    # Apply 2D IDCT to the block
+    return cv2.idct(cv2.idct(np.float32(block)))
+
+# Load the original image
+image = cv2.imread('/content/cameraman.bmp', cv2.IMREAD_GRAYSCALE)
+
+# Apply DCT to the image
+dct_image = dct2(image)
+
+# Apply IDCT to the DCT image
+idct_image = idct2(dct_image)
+
+# Display the original image, DCT image, and reconstructed image
+plt.figure(figsize=(10, 10))
+
+plt.subplot(131)
+plt.imshow(image, cmap='gray')
+plt.title('Original Image')
+
+plt.subplot(132)
+plt.imshow(np.log(1 + np.abs(dct_image)), cmap='gray')
+plt.title('DCT Image')
+
+plt.subplot(133)
+plt.imshow(idct_image, cmap='gray')
+plt.title('Reconstructed Image(IDCT image)')
+
+plt.show()
+
+
+19.Huffman
+# do this first 
+
+pip install huffman
+
+
+import huffman
+import math
+
+img = cv.imread('/content/drive/MyDrive/dip_Images/Fig0323(a)(mars_moon_phobos).tif',0)
+
+hashmap = dict()
+
+rows, cols = img.shape
+for row in range(rows):
+    for col in range(cols):
+        pixel = img[row][col]
+        if pixel not in hashmap:
+            hashmap[pixel] = 1
+        else:
+            hashmap[pixel] += 1
+
+
+
+symbol_freq_pairs = [(key, value) for key, value in hashmap.items()]
+
+
+codebook = huffman.codebook(symbol_freq_pairs)
+
+
+print("Huffman Codes:")
+for symbol, code in codebook.items():
+    print(f"Symbol: {symbol}, Code: {code}")
+
+
+total_frequency = sum(freq for _, freq in symbol_freq_pairs)
+ent = sum(-p * math.log2(p) for _, p in ((symbol, freq / total_frequency) for symbol, freq in symbol_freq_pairs if freq))
+print("\nEntropy:", ent)
+
+
+avg_len = sum(len(code) * (freq / total_frequency) for symbol, freq in symbol_freq_pairs for code in [codebook[symbol]])
+print("Average Codeword Length:", avg_len)
+
+
+eff = ent / avg_len
+print("Efficiency:", eff*100,"%")
+
+
+
+
+
+
+
